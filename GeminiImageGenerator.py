@@ -2,49 +2,120 @@ import pathlib
 import google.generativeai as genai
 from io import BytesIO
 import base64
+import json
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
         genai.configure(api_key=api_key)
-        # Configure the model with the correct model name for image generation
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp-image-generation')
+        # Use gemini-1.5-pro which has better support for image generation
+        self.model = genai.GenerativeModel('gemini-1.5-pro')
         
     def generate_image(self, prompt):
         try:
             print(f"提示詞: {prompt}")
             
-            # Modified to use the proper parameters for Gemini image generation
-            # Removing the unsupported responseModalities parameter
+            # Format the prompt specifically for image generation using tools
+            formatted_prompt = {
+                "text": f"Generate a high-resolution, detailed image of: {prompt}. Make sure the image is vivid and clear."
+            }
+            
+            # Set up the tool for image generation
+            tools = [
+                {
+                    "function_declarations": [
+                        {
+                            "name": "generate_image",
+                            "description": "Generate an image based on the input prompt",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "prompt": {
+                                        "type": "string",
+                                        "description": "The prompt to generate an image for"
+                                    }
+                                },
+                                "required": ["prompt"]
+                            }
+                        }
+                    ]
+                }
+            ]
+            
+            # Call the API with properly formatted request
             response = self.model.generate_content(
-                prompt,
+                formatted_prompt,
                 generation_config={
-                    "temperature": 1.0,
+                    "temperature": 0.9,
+                    "top_p": 1,
+                    "top_k": 32,
                 },
+                tools=tools,
+                tool_config={"function_calling_config": {"mode": "auto"}},
                 stream=False
             )
             
-            print(f"回應狀態: {getattr(response, 'prompt_feedback', 'No feedback')}")
+            # Detailed logging to help debug
+            print(f"Response type: {type(response)}")
+            print(f"Response dir: {dir(response)}")
             
-            # Extract the image data from the response
+            # Try to find any function calls that might contain image data
             if hasattr(response, 'candidates') and response.candidates:
-                candidate = response.candidates[0]
-                if hasattr(candidate, 'content') and candidate.content:
-                    for part in candidate.content.parts:
-                        if hasattr(part, 'inline_data') and part.inline_data:
-                            print("找到圖像資料")
-                            # Return the raw bytes from the inline_data
-                            return base64.b64decode(part.inline_data.data)
+                for candidate in response.candidates:
+                    print(f"Candidate: {candidate}")
+                    
+                    # Check for function calls in the response
+                    if hasattr(candidate, 'content') and candidate.content:
+                        for part in candidate.content.parts:
+                            # Look for function calls
+                            if hasattr(part, 'function_call') and part.function_call:
+                                print(f"Found function call: {part.function_call}")
+                                # Attempt to extract image data
+                                if part.function_call.name == "generate_image":
+                                    # Make a second call to generate the actual image
+                                    args = json.loads(part.function_call.args)
+                                    image_prompt = args.get("prompt", prompt)
+                                    
+                                    # Call the Imagen model directly
+                                    imagen_response = self.model.generate_content(
+                                        f"Please generate an image of: {image_prompt}. Return it as an inline image only, without any text.",
+                                        stream=False
+                                    )
+                                    
+                                    # Try to extract image from the imagen response
+                                    for img_part in imagen_response.parts:
+                                        if hasattr(img_part, 'inline_data') and img_part.inline_data:
+                                            print("Found image data")
+                                            return base64.b64decode(img_part.inline_data.data)
+                            
+                            # Direct check for inline data
+                            if hasattr(part, 'inline_data') and part.inline_data:
+                                print("Found direct image data")
+                                return base64.b64decode(part.inline_data.data)
             
-            # Alternative check if the response structure is different
-            if hasattr(response, 'parts'):
-                for part in response.parts:
+            # If we got here, we need to try a different approach
+            print("First method failed, trying direct image generation...")
+            
+            # Try a more direct approach with simple prompt
+            direct_response = self.model.generate_content(
+                f"Generate an image of {prompt}. Output only the image with no text.",
+                stream=False
+            )
+            
+            # Check for image data in the direct response
+            if hasattr(direct_response, 'parts'):
+                for part in direct_response.parts:
                     if hasattr(part, 'inline_data') and part.inline_data:
-                        print("找到圖像資料")
+                        print("Found image in direct response")
                         return base64.b64decode(part.inline_data.data)
-            
-            raise Exception("回應中沒有圖像資料")
+                        
+            raise Exception("No image data found in any of the responses")
 
         except Exception as e:
             error_msg = f"圖像生成錯誤: {str(e)}"
             print(error_msg)
+            
+            # Print full exception for debugging
+            import traceback
+            print(traceback.format_exc())
+            
             raise Exception(error_msg)
