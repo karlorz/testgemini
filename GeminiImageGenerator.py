@@ -21,7 +21,10 @@ class GeminiImageGenerator:
                 generation_config={
                     'temperature': 0.9,
                 },
-                tools=[{"type": "IMAGE_GENERATION"}],
+                safety_settings=[{
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE"
+                }],
                 stream=False
             )
 
