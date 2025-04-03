@@ -71,21 +71,31 @@ class GeminiImageGenerator:
                                 print(f"Found function call: {part.function_call}")
                                 # Attempt to extract image data
                                 if part.function_call.name == "generate_image":
-                                    # Make a second call to generate the actual image
-                                    args = json.loads(part.function_call.args)
-                                    image_prompt = args.get("prompt", prompt)
-                                    
-                                    # Call the Imagen model directly
-                                    imagen_response = self.model.generate_content(
-                                        f"Please generate an image of: {image_prompt}. Return it as an inline image only, without any text.",
-                                        stream=False
-                                    )
-                                    
-                                    # Try to extract image from the imagen response
-                                    for img_part in imagen_response.parts:
-                                        if hasattr(img_part, 'inline_data') and img_part.inline_data:
-                                            print("Found image data")
-                                            return base64.b64decode(img_part.inline_data.data)
+                                    # Extract the prompt from MapComposite object directly
+                                    # Access the fields directly instead of using json.loads
+                                    try:
+                                        args = part.function_call.args
+                                        # MapComposite objects can be accessed like dictionaries
+                                        image_prompt = args.get("prompt", prompt)
+                                        if hasattr(image_prompt, "string_value"):  # It might be wrapped in a Value object
+                                            image_prompt = image_prompt.string_value
+                                        
+                                        print(f"Extracted image prompt: {image_prompt}")
+                                        
+                                        # Call the model directly with the extracted prompt
+                                        imagen_response = self.model.generate_content(
+                                            f"Please generate an image of: {image_prompt}. Return it as an inline image only, without any text.",
+                                            stream=False
+                                        )
+                                        
+                                        # Try to extract image from the imagen response
+                                        if hasattr(imagen_response, 'parts'):
+                                            for img_part in imagen_response.parts:
+                                                if hasattr(img_part, 'inline_data') and img_part.inline_data:
+                                                    print("Found image data")
+                                                    return base64.b64decode(img_part.inline_data.data)
+                                    except Exception as e:
+                                        print(f"Error extracting prompt from function call: {e}")
                             
                             # Direct check for inline data
                             if hasattr(part, 'inline_data') and part.inline_data:
