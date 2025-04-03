@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini 圖像生成器</title>
+</head>
+<body>
+    <h1>Gemini 圖像生成器</h1>
+    <form method="post">
+        <label for="prompt">請輸入提示：</label><br>
+        <input type="text" id="prompt" name="prompt" size="50"><br><br>
+        <input type="submit" value="生成圖像">
+    </form>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    {% if image_data %}
+    <h2>生成的圖像：</h2>
+    <img src="data:image/png;base64,{{ image_data }}" alt="Generated Image">
+    {% endif %}
+</body>
+</html>
