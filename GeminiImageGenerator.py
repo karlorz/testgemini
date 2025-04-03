@@ -13,11 +13,11 @@ class GeminiImageGenerator:
         try:
             print(f"提示詞: {prompt}")
             
-            # Call the image generation API with correct parameters for Gemini 2.0
+            # Modified to use the proper parameters for Gemini image generation
+            # Removing the unsupported responseModalities parameter
             response = self.model.generate_content(
                 prompt,
                 generation_config={
-                    "responseModalities": ["Text", "Image"],
                     "temperature": 1.0,
                 },
                 stream=False
