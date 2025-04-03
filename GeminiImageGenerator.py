@@ -1,11 +1,33 @@
 import pathlib
 import google.generativeai as genai
-from PIL import Image
 from io import BytesIO
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
         genai.configure(api_key=api_key)
+        genai.configure(generation_config=genai.GenerationConfig(
+            temperature=1.0,
+            candidate_count=1,
+            max_output_tokens=2048
+        ))
+        self._configure_model_params()
+
+    def _configure_model_params(self):
+        self.model_params = {
+            "tools": [{
+                "functionDeclarations": [{
+                    "name": "generate_image",
+                    "description": "Generate an image based on the prompt",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "format": {"type": "string", "enum": ["jpg"]},
+                            "size": {"type": "string", "enum": ["1024x1024"]}
+                        }
+                    }
+                }]
+            }]
+        }
         self.model = genai.GenerativeModel('gemini-2.0-flash-exp-image-generation')
 
     def generate_image(self, prompt):
@@ -16,22 +38,20 @@ class GeminiImageGenerator:
 
             response = self.model.generate_content(
                 enhanced_prompt,
-                generation_config={
-                    'temperature': 1.0,
-                    'top_p': 1.0,
-                    'top_k': 32,
-                    'candidate_count': 1,
-                    'max_output_tokens': 2048,
-                    'responseModalities': ["Text", "Image"],
-                    'image_format': 'jpg',
-                    'size': '1024x1024'
-                },
-                safety_settings=[
-                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
-                ],
+                **self.model_params,
+                safety_settings=[{
+                    "category": genai.types.HarmCategory.HARASSMENT,
+                    "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE
+                }, {
+                    "category": genai.types.HarmCategory.HATE_SPEECH,
+                    "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE
+                }, {
+                    "category": genai.types.HarmCategory.SEXUALLY_EXPLICIT,
+                    "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE
+                }, {
+                    "category": genai.types.HarmCategory.DANGEROUS_CONTENT,
+                    "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE
+                }],
                 stream=False
             )
 
