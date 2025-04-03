@@ -2,21 +2,83 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini 圖像生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            border: 1px solid red;
+            margin: 10px 0;
+            background-color: #ffe6e6;
+        }
+        .success {
+            color: green;
+            padding: 10px;
+            border: 1px solid green;
+            margin: 10px 0;
+            background-color: #e6ffe6;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
     <h1>Gemini 圖像生成器</h1>
     <form method="post">
-        <label for="prompt">請輸入提示：</label><br>
-        <input type="text" id="prompt" name="prompt" size="50"><br><br>
+        <label for="prompt">請輸入提示（建議使用英文）：</label><br>
+        <input type="text" id="prompt" name="prompt" value="{{ prompt or '' }}" placeholder="例如：A cat playing piano"><br><br>
         <input type="submit" value="生成圖像">
     </form>
+
     {% if error %}
-    <p style="color:red;">{{ error }}</p>
+    <div class="error">
+        {{ error }}
+    </div>
     {% endif %}
+
+    {% if success_message %}
+    <div class="success">
+        {{ success_message }}
+    </div>
+    {% endif %}
+
     {% if image_data %}
-    <h2>生成的圖像：</h2>
-    <img src="data:image/png;base64,{{ image_data }}" alt="Generated Image">
+    <div class="result">
+        <h2>生成的圖像：</h2>
+        <p>提示詞：{{ prompt }}</p>
+        <img src="data:image/png;base64,{{ image_data }}" alt="生成的圖像">
+    </div>
     {% endif %}
 </body>
 </html>

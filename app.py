@@ -20,14 +20,28 @@ def index():
     if request.method == 'POST':
         prompt = request.form['prompt']
         try:
+            # 記錄請求
+            print(f"接收到的提示: {prompt}")
+            
             image_bytes = image_generator.generate_image(prompt)
-            if image_bytes:
-                base64_image = base64.b64encode(image_bytes).decode('utf-8')
-                return render_template('index.html', image_data=base64_image)
-            else:
-                return render_template('index.html', error='圖像生成失敗。')
+            if not image_bytes:
+                raise Exception("未能生成圖像")
+            
+            # 記錄成功
+            print("圖像生成成功")
+            
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+            return render_template('index.html', 
+                                image_data=base64_image,
+                                prompt=prompt,
+                                success_message="圖像生成成功！")
+                                
         except Exception as e:
-            return render_template('index.html', error=str(e))
+            # 記錄錯誤
+            print(f"錯誤詳情: {str(e)}")
+            return render_template('index.html', 
+                                error=f"圖像生成錯誤: {str(e)}",
+                                prompt=prompt)
     return render_template('index.html')
 
 import base64
