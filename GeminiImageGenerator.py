@@ -1,17 +1,20 @@
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
+from google import genai
+from google.genai import types
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp-image-generation')
+        self.client = genai.Client(api_key=api_key)
 
     def generate_image(self, prompt):
         try:
-            response = self.model.generate_content(
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash-exp-image-generation",
                 contents=prompt,
-                config=GenerationConfig(response_modalities=['Text', 'Image'])
+                config=types.GenerateContentConfig(
+                    response_modalities=['Text', 'Image']
+                )
             )
+            
             for part in response.candidates[0].content.parts:
                 if part.inline_data:
                     return part.inline_data.data
