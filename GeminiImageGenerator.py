@@ -11,7 +11,7 @@ class GeminiImageGenerator:
     def generate_image(self, prompt):
         try:
             enhanced_prompt = (
-                f"Create a friendly, cartoon-style 3D rendering of {prompt} in a cute and safe style"
+                f"Generate a simple JPG image of {prompt}"
             )
 
             print(f"提示詞: {enhanced_prompt}")
@@ -20,6 +20,7 @@ class GeminiImageGenerator:
                 enhanced_prompt,
                 generation_config={
                     'temperature': 0.9,
+                    'candidate_count': 1,
                 },
                 safety_settings=[
                     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
@@ -27,7 +28,8 @@ class GeminiImageGenerator:
                     {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
                     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
                 ],
-                stream=False
+                stream=False,
+                tools=[{"type": "IMAGE_GENERATION"}]
             )
 
             print(f"回應狀態: {getattr(response, 'prompt_feedback', 'No feedback')}")
