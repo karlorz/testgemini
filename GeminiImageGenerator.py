@@ -17,13 +17,14 @@ class GeminiImageGenerator:
             response = self.model.generate_content(
                 enhanced_prompt,
                 generation_config={
-                    'image_format': 'jpg',
-                    'size': '1024x1024',
                     'temperature': 1.0,
                     'top_p': 1.0,
                     'top_k': 32,
                     'candidate_count': 1,
                     'max_output_tokens': 2048,
+                    'responseModalities': ["Text", "Image"],
+                    'image_format': 'jpg',
+                    'size': '1024x1024'
                 },
                 safety_settings=[
                     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
