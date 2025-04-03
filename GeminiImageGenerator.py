@@ -29,16 +29,28 @@ class GeminiImageGenerator:
             )
 
             print(f"回應狀態: {getattr(response, 'prompt_feedback', 'No feedback')}")
-
+            print(f"完整回應物件: {response}")
+            print(f"回應屬性: {dir(response)}")
+            
             # 檢查回應
+            print(f"候選項數量: {len(response.candidates) if response.candidates else 0}")
             if not response.candidates or len(response.candidates) == 0:
                 raise Exception("未收到任何回應")
 
             for candidate in response.candidates:
+                print(f"候選項內容: {candidate}")
+                print(f"候選項屬性: {dir(candidate)}")
+                
                 if not candidate.content:
+                    print("候選項沒有內容")
                     continue
                 
+                print(f"Content 物件: {candidate.content}")
+                print(f"Content 屬性: {dir(candidate.content)}")
+                
                 for part in candidate.content.parts:
+                    print(f"Part 物件: {part}")
+                    print(f"Part 屬性: {dir(part)}")
                     if hasattr(part, 'text') and part.text:
                         print(f"文字回應: {part.text}")
                     if hasattr(part, 'inline_data') and part.inline_data:
