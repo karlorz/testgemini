@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, send_file
 from GeminiImageGenerator import GeminiImageGenerator
 import os
+import base64
 from io import BytesIO
 from dotenv import load_dotenv
 
@@ -43,8 +44,6 @@ def index():
                                 error=f"圖像生成錯誤: {str(e)}",
                                 prompt=prompt)
     return render_template('index.html')
-
-import base64
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
