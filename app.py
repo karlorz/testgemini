@@ -2,6 +2,9 @@ from flask import Flask, request, render_template, send_file
 from GeminiImageGenerator import GeminiImageGenerator
 import os
 from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()  # 載入 .env 檔案
 
 app = Flask(__name__)
 
