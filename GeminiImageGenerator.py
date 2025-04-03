@@ -17,6 +17,8 @@ class GeminiImageGenerator:
             response = self.model.generate_content(
                 enhanced_prompt,
                 generation_config={
+                    'image_format': 'jpg',
+                    'size': '1024x1024',
                     'temperature': 1.0,
                     'top_p': 1.0,
                     'top_k': 32,
