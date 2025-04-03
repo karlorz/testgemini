@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from google.generativeai.types import GenerateContentConfig
+from google.generativeai.types import GenerationConfig
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
@@ -10,7 +10,7 @@ class GeminiImageGenerator:
         try:
             response = self.model.generate_content(
                 contents=prompt,
-                config=GenerateContentConfig(response_modalities=['Text', 'Image'])
+                config=GenerationConfig(response_modalities=['Text', 'Image'])
             )
             for part in response.candidates[0].content.parts:
                 if part.inline_data:
