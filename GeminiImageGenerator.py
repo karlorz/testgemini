@@ -1,12 +1,11 @@
-from google import genai
-from google.generativeai import GenerativeModel
+import google.generativeai as genai
 from PIL import Image
 from io import BytesIO
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
-        self.client = genai.Client(api_key=api_key)
-        self.model = GenerativeModel('gemini-2.0-flash-exp-image-generation')
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel('gemini-2.0-flash-exp-image-generation')
 
     def generate_image(self, prompt):
         try:
