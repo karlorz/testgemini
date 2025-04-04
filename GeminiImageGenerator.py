@@ -7,8 +7,8 @@ class GeminiImageGenerator:
     def __init__(self, api_key):
         # Configure the API with your key
         genai.configure(api_key=api_key)
-        # Using the model name directly - no client instance needed
-        self.model_name = "gemini-2.0-flash-exp-image-generation"
+        # Create model instance - this is the correct way to access the API in older versions
+        self.model = genai.GenerativeModel("gemini-2.0-flash-exp-image-generation")
         
     def generate_image(self, prompt):
         try:
@@ -17,12 +17,11 @@ class GeminiImageGenerator:
             # Format the prompt for clarity
             formatted_prompt = f"Generate a detailed image of: {prompt}"
             
-            # Call the API using the direct method
-            response = genai.generate_content(
-                model=self.model_name,
+            # Call the API using GenerativeModel.generate_content() method
+            response = self.model.generate_content(
                 contents=formatted_prompt,
                 generation_config={
-                    "response_mime_types": ["image/png"],
+                    "temperature": 1.0,
                 }
             )
             
