@@ -1,15 +1,14 @@
 import google.generativeai as genai
-from google.generativeai import types
 from io import BytesIO
 import base64
-import json
+import traceback
 
 class GeminiImageGenerator:
     def __init__(self, api_key):
-        # Configure the client with API key
+        # Configure the API with your key
         genai.configure(api_key=api_key)
-        # Create a client instance
-        self.client = genai.Client()
+        # Using the model name directly - no client instance needed
+        self.model_name = "gemini-2.0-flash-exp-image-generation"
         
     def generate_image(self, prompt):
         try:
@@ -18,13 +17,13 @@ class GeminiImageGenerator:
             # Format the prompt for clarity
             formatted_prompt = f"Generate a detailed image of: {prompt}"
             
-            # Call the API using the format from the documentation
-            response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp-image-generation",
+            # Call the API using the direct method
+            response = genai.generate_content(
+                model=self.model_name,
                 contents=formatted_prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["Text", "Image"]
-                )
+                generation_config={
+                    "response_mime_types": ["image/png"],
+                }
             )
             
             print(f"Response type: {type(response)}")
@@ -53,7 +52,6 @@ class GeminiImageGenerator:
             print(error_msg)
             
             # Print full exception for debugging
-            import traceback
             print(traceback.format_exc())
             
             raise Exception(error_msg)
