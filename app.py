@@ -31,6 +31,7 @@ def index():
             # 記錄成功
             print("圖像生成成功")
             
+            # 將二進制數據轉換為 base64
             base64_image = base64.b64encode(image_bytes).decode('utf-8')
             return render_template('index.html', 
                                 image_data=base64_image,
